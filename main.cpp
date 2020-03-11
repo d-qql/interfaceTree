@@ -161,10 +161,13 @@ private:
     }
     treeElem* _findElem(treeElem* root, int id){
         if(id<root->id){
-            _findElem(root->left, id);
+            if(root->height==1) return NULL;
+            return _findElem(root->left, id);
+
         }
         if(id>root->id){
-            _findElem(root->right, id);
+            if(root->height==1) return NULL;
+            return _findElem(root->right, id);
         }
         return root;
     }
@@ -185,11 +188,14 @@ private:
 
 public:
     tree(): root(NULL) {}
+    ~tree(){
+        _DeleteAll(root);
+    };
      void insert(int value){
          root = _insert(root, value);
     }
     bool exists(int value){
-        if(_findElem(root, value)==NULL) return false; else return true;
+        if(_findElem(root, value)==NULL){ return false;} else return true;
     }
     void remove(int value){
         root = _remove(root, value);
@@ -209,13 +215,16 @@ public:
 
 };
 
-int main() {
-    tree t;
-    for(int i = 0; i<90; i++){
-        t.insert(rand());
-    }
-    t.print();
-    t.PrintLikeATree();
-    t.DeleteAll();
+int main()
+{
+    Container* c = new tree();
+
+    for(int i = 1; i < 10; i++)
+        c->insert(i*i);
+    c->print();
+    if(!c->exists(111))
+        cout << "Search for value 111: not found" << endl;
+
+    delete c;
     return 0;
 }
