@@ -12,7 +12,7 @@ private:
 
 public:
     friend tree;
-    treeElem(int k): id(k), left(NULL), right(NULL), height(1) {}
+    treeElem(int k): id(k), height(1), left(NULL), right(NULL){}
 
 };
 
