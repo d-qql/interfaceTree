@@ -195,4 +195,5 @@ template<typename T>
         _Print(root, root->height);
     }
 
-
+    template class tree<int>;
+template class tree<string>;
