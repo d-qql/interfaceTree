@@ -136,13 +136,11 @@ template<typename T>
     }
 template<typename T>
     treeElem<T>* tree<T>::_findElem(treeElem<T>* root, const T& id)const{
+    if(root==NULL) return NULL;
         if(id<root->id){
-            if(root->height==1) return NULL;
             return _findElem(root->left, id);
-
         }
         if(id>root->id){
-            if(root->height==1) return NULL;
             return _findElem(root->right, id);
         }
         return root;
@@ -150,6 +148,7 @@ template<typename T>
 template<typename T>
     void tree<T>::_DeleteAll(treeElem<T> *root)
     {
+        if(root==NULL) return;
         if (root->left!=NULL)
         {
             _DeleteAll(root->left);

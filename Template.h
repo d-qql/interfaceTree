@@ -16,8 +16,8 @@ class treeElem
 private:
     T id;
     unsigned char height;
-    treeElem* left;
-    treeElem* right;
+    treeElem<T>* left;
+    treeElem<T>* right;
 public:
     friend class tree<T>;
     treeElem(const T& k);
