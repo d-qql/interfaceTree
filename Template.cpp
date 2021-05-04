@@ -1,5 +1,6 @@
 #include "Template.h"
 
+
 template<typename T>
     treeElem<T>::treeElem(const T& k): id(k), height(1), left(NULL), right(NULL){}
 

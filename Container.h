@@ -5,6 +5,7 @@
 #ifndef INTERFACETREE_CONTAINER_H
 #define INTERFACETREE_CONTAINER_H
 
+
 // Обновлённый интерфейс, теперь он шаблон
 template<typename T>
 class Container

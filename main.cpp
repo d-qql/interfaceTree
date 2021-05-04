@@ -5,6 +5,7 @@
 #include <functional>
 #include <stdexcept>
 
+
 using namespace std;
 
 // Внимание!
