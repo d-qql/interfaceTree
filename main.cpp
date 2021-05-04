@@ -1,230 +1,224 @@
 #include <iostream>
+#include <string>
+#include <vector>
+#include <algorithm>
+#include <functional>
+#include <stdexcept>
 
 using namespace std;
-class tree;
-class treeElem{
-private:
-    int id;
-    unsigned char height;
-    treeElem* left;
-    treeElem* right;
+
+// Внимание!
+// Вообще-то тесты так писать не принято. Потому что эта реализация на коленке (а) хрупкая и (б) много чего не умеет.
+// Сейчас всё же оставим так, чтобы вы могли всё это использовать, не разбираясь с дополнительными инструментами.
+// Но в реальном проекте используйте Boost.Test или gtest или ещё какой-нибудь аналог.
+
+// Подключите свой хэдер вместо VerySimpleList.h
+#include "Template.h"
+// Вместо VerySimpleList укажите имя своего класса, который тестируем
+#define IMPL tree
+
+// Больше ничего править не требуется, просто соберитесь и запуститесь с этим main-ом с тестами
 
 
-public:
-    friend tree;
-    treeElem(int k): id(k), height(1), left(NULL), right(NULL){}
-
-};
-
-
-class Container
+bool test1()
 {
-public:
-    // Виртуальные методы, должны быть реализованы вашим контейнером
-    virtual void insert(int value) = 0;
-    virtual bool exists(int value) = 0;
-    virtual void remove(int value) = 0;
+    int size = 10;
+    Container<int>* impl = new IMPL<int>();
+    bool test_ok = true;
 
-    // И этот тоже, хотя к нему потом ещё вернёмся
-    virtual void print() = 0;
-
-    // Виртуальный деструктор (пока просто поверьте, что он нужен)
-    virtual ~Container() { };
-};
-
-class tree: public Container{
-private:
-    treeElem* root;
-
-    unsigned char height(treeElem* p)
-    {
-        return p?p->height:0;
+    for(int i = 0; i < size; i++) {
+        impl->insert(i * i);
     }
 
-    int balancefactor(treeElem* p)
-    {
-        return height(p->right)-height(p->left);
-    }
-
-    void fixheight(treeElem* p)
-    {
-        unsigned char hl = height(p->left);
-        unsigned char hr = height(p->right);
-        p->height = (hl>hr?hl:hr)+1;
-    }
-
-    treeElem* rotateright(treeElem* p)
-    {
-        if(p==root){
-            root=p->left;
+    for(int i = 0; i < size; i++) {
+        if (!impl->exists(i * i)) {
+            test_ok = false;
         }
-        treeElem* q = p->left;
-        p->left = q->right;
-        q->right = p;
-        fixheight(p);
-        fixheight(q);
-        return q;
-    }
-
-    treeElem* rotateleft(treeElem* q)
-    {
-        if(q == root){
-            root=q->right;
-        }
-        treeElem* p = q->right;
-        q->right = p->left;
-        p->left = q;
-        fixheight(q);
-        fixheight(p);
-        return p;
-    }
-
-    treeElem* balance(treeElem* p)
-    {
-        fixheight(p);
-        if( balancefactor(p)==2 )
-        {
-            if( balancefactor(p->right) < 0 )
-                p->right = rotateright(p->right);
-            return rotateleft(p);
-        }
-        if( balancefactor(p)==-2 )
-        {
-            if( balancefactor(p->left) > 0  )
-                p->left = rotateleft(p->left);
-            return rotateright(p);
-        }
-        return p;
-    }
-    treeElem* _insert(treeElem* p, int k)
-    {
-        if( !p ) return new treeElem(k);
-        if( k<p->id )
-            p->left = _insert(p->left,k);
-        else
-            p->right = _insert(p->right,k);
-        return balance(p);
-    }
-    treeElem* findmin(treeElem* p)
-    {
-        return p->left?findmin(p->left):p;
-    }
-
-    treeElem* removemin(treeElem* p)
-    {
-        if( p->left==NULL )
-            return p->right;
-        p->left = removemin(p->left);
-        return balance(p);
-    }
-
-    treeElem* _remove(treeElem* p, int k)
-    {
-        if( !p ) return NULL;
-        if( k < p->id )
-            p->left = _remove(p->left,k);
-        else if( k > p->id )
-            p->right = _remove(p->right,k);
-        else //  k == p->id
-        {
-            treeElem* q = p->left;
-            treeElem* r = p->right;
-            delete p;
-            if( !r ) return q;
-            treeElem* min = findmin(r);
-            min->right = removemin(r);
-            min->left = q;
-            return balance(min);
-        }
-        return balance(p);
-    }
-
-    void _print_tree(struct treeElem* root) {
-        if(root->left != NULL)
-            _print_tree(root->left);
-        cout << "Value = " << root->id <<endl;
-        if(root->right != NULL)
-            _print_tree(root->right);
-
-    }
-    void _Print(treeElem *q, long n)
-    {
-        long i;
-        if (q)
-        {
-            _Print(q->right, n+5);
-            for (i = 0; i < n; i++)
-                cout<<" ";
-            cout<<q->id<<endl;
-            _Print(q->left, n+5);
+        impl->remove(i * i);
+        if (impl->exists(i * i)) {
+            test_ok = false;
         }
     }
-    treeElem* _findElem(treeElem* root, int id){
-        if(id<root->id){
-            if(root->height==1) return NULL;
-            return _findElem(root->left, id);
 
+    delete impl;
+
+    cout << boolalpha << "Container<int> basic API works: " << test_ok << endl;
+    return test_ok;
+}
+
+bool test2()
+{
+    int size = 10;
+    Container<string>* impl = new IMPL<string>();
+    bool test_ok = true;
+
+    for(int i = 0; i < size; i++) {
+        string s = "a";
+        s[0] += i;
+        impl->insert(s);
+    }
+
+    for(int i = 0; i < size; i++) {
+        string s = "a";
+        s[0] += i;
+        if (!impl->exists(s)) {
+            test_ok = false;
         }
-        if(id>root->id){
-            if(root->height==1) return NULL;
-            return _findElem(root->right, id);
+        impl->remove(s);
+        if (impl->exists(s)) {
+            test_ok = false;
         }
-        return root;
-    }
-    void _DeleteAll(treeElem *root)
-    {
-        if (root->left!=NULL)
-        {
-            _DeleteAll(root->left);
-        }
-        if (root->right!=NULL)
-        {
-            _DeleteAll(root->right);
-        }
-
-        delete root;
-
     }
 
-public:
-    tree(): root(NULL) {}
-    ~tree(){
-        _DeleteAll(root);
-    };
-     void insert(int value){
-         root = _insert(root, value);
-    }
-    bool exists(int value){
-        if(_findElem(root, value)==NULL){ return false;} else return true;
-    }
-    void remove(int value){
-        root = _remove(root, value);
+    delete impl;
+
+    cout << boolalpha << "Container<string> basic API works: " << test_ok << endl;
+    return test_ok;
+}
+
+bool test5()
+{
+    bool test_ok = true;
+
+    int size = 10;
+
+    IMPL<int> impl;
+    for(int i = 0; i < size; i++) {
+        impl.insert(i);
     }
 
-    // И этот тоже, хотя к нему потом ещё вернёмся
-    void print(){
-        _print_tree(root);
+    cout << boolalpha << "Looking for non-existing element works: " << (!impl.exists(42)) << endl;
+    return test_ok;
+}
+
+bool test6()
+{
+    bool test_ok = true;
+
+    int size = 10;
+
+    IMPL<int> impl;
+    for(int i = 0; i < size; i++) {
+        impl.insert(i);
+    }
+    impl.remove(42);
+
+    cout << boolalpha << "Calling remove() for non-existing element does not die: " << (test_ok) << endl;
+    return test_ok;
+}
+
+bool test7()
+{
+    bool test_ok = true;
+
+    IMPL<int> impl;
+    impl.exists(42);
+    impl.remove(42);
+
+    //vector<int> from_impl;
+    //for(const auto& el: impl)
+    //    from_impl.push_back(el);
+
+    cout << boolalpha << "Empty container does not die: " << (test_ok) << endl;
+    return test_ok;
+}
+
+bool test8()
+{
+    bool test_ok = true;
+
+    int size = 10;
+    vector<int> reference;
+    vector<int> from_impl;
+
+    IMPL<int> impl;
+    for(int i = 0; i < size; i++) {
+        impl.insert(i);
+        reference.push_back(i);
     }
 
-    void DeleteAll() {
-        _DeleteAll(root);
-    }
-    void PrintLikeATree(){
-        _Print(root, root->height);
+    int to_delete = int(size / 2);
+    auto position = find(reference.begin(), reference.end(), to_delete);
+    reference.erase(position);
+    impl.remove(to_delete);
+
+    //for(const auto& el: impl)
+    //    from_impl.push_back(el);
+    //
+    //sort(reference.begin(), reference.end());
+    //sort(from_impl.begin(), from_impl.end());
+
+    for(int i = 0; i < size; i++) {
+        test_ok = test_ok && (i != to_delete ? impl.exists(i) : !impl.exists(i));
     }
 
-};
+    cout << boolalpha << "Elements are still reachable after remove(): " << (test_ok) << endl;
+    return test_ok;
+}
+
+bool test9()
+{
+    bool test_ok = true;
+
+    int size = 10;
+    vector<int> reference;
+    vector<int> from_impl;
+
+    IMPL<int> impl;
+    for(int i = 0; i < size; i++) {
+        impl.insert(i);
+        impl.insert(i);
+        impl.insert(i);
+        reference.push_back(i);
+        reference.push_back(i);
+        reference.push_back(i);
+    }
+
+    //for(const auto& el: impl)
+    //    from_impl.push_back(el);
+    //
+    //sort(reference.begin(), reference.end());
+    //sort(from_impl.begin(), from_impl.end());
+
+    cout << boolalpha << "Duplicate values are possible: " << (test_ok) << endl;
+    return test_ok;
+}
+
+bool test10()
+{
+    bool test_ok = true;
+
+    IMPL<int> impl1;
+    impl1.insert(42);
+    impl1.insert(0);
+    impl1.remove(42);
+
+    IMPL<int> impl2;
+    impl2.insert(0);
+    impl2.insert(42);
+    impl2.remove(42);
+
+    test_ok = (impl1.exists(0) && impl2.exists(0));
+
+    cout << boolalpha << "Removing head element probably works: " << (test_ok) << endl;
+    return test_ok;
+}
 
 int main()
 {
-    Container* c = new tree();
+    vector<function<bool(void)>> tests = {test1, test2, test5, test6, test7, test8, test9, test10};
 
-    for(int i = 1; i < 10; i++)
-        c->insert(i*i);
-    c->print();
-    if(!c->exists(111))
-        cout << "Search for value 111: not found" << endl;
+    bool verdict = true;
 
-    delete c;
+    unsigned int count = 1;
+    for(auto test : tests) {
+        cout << count << ". ";
+        verdict = verdict && test();
+        count++;
+    }
+
+    cout << "=================================" << endl;
+    cout << "Run " << (count - 1) << " tests. Verdict: " << (verdict ? "PASSED" : "FAILED") << endl;
+
     return 0;
 }
